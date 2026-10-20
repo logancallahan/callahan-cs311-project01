@@ -1,31 +1,57 @@
 # Project 1: The Speed Cache
+Logan Callahan — CS 311
 
-Full assignment: `Project_1_The_Speed_Cache.md` (course handout; copy alongside this starter when staging the repository).
+## Overview
+This project implements a thread-safe Least Recently Used (LRU) cache in Python. When the cache is full, inserting a new entry removes the entry that has gone the longest without being used.
 
-## GitHub workflow
-Use **Use this template** to create your own repository, clone it, complete the
-starter TODOs, and commit and push your work. Submit the files and evidence
-listed in the assignment through Blackboard.
+A dictionary maps keys directly to doubly linked-list nodes. The list keeps the most recently used entry at the front and the least recently used entry at the back. Both get and put use a single lock to protect concurrent access.
 
-Complete 100-point Course Project due Friday, October 16, 2026 at 11:59 PM Central. Tuesday, October 6 is Fall Break. Neither Tuesday nor Thursday requires on-campus attendance: you may work on Project 1 in the classroom or elsewhere, or be absent. Thursday offers a brief optional wiring demonstration and project handoff.
+## Requirements
+- Python 3
+- No third-party packages are required.
+- Use a positive integer for the cache capacity.
 
 ## Files
-- `doubly_linked_list.py` -- sentinel-based DLL: complete `add_to_front`, `remove`, `move_to_front`
-- `lru_cache.py` -- `LRUCache`: complete `get`, `put`, and lock usage
-- `test_lru.py` -- non-concurrent correctness suite (`python -m unittest test_lru.py`)
-- `simulate_hitrate.py` -- supplied CLI hit-rate simulation; run the same workload at several capacities and explain the result
-- `verify_project1.py` -- runs everything above plus a concurrency stress test, then prints the Success Token
+- lru_cache.py: Cache lookup, insertion, updates, eviction, and locking.
+- doubly_linked_list.py: Nodes and linked-list operations.
+- test_lru.py: Unit tests.
+- simulate_hitrate.py: Cache hit-rate simulation.
+- verify_project1.py: Project verification.
+- DESIGN.md or accompanying design sketch: Map-to-node relationship.
 
-## Run
+## Running the Project
+Open a terminal in the  folder.
+
+Run the unit tests:
 ```bash
-python -m unittest test_lru.py
-python verify_project1.py         # full check, including thread-safety -- run this for the token
+python3 -m unittest test_lru.py
 ```
 
-## Submit
-1. `README.md` with reproducible setup and commands, and `DESIGN.md`
-2. `doubly_linked_list.py`, `lru_cache.py`
-3. Hit-rate evidence at multiple capacities
-4. Full `python verify_project1.py` transcript, including invariant and contention checks, and Success Token
-5. Complexity justification for `get`, `put`, and eviction
-6. Any modified `simulate_hitrate.py` and `test_lru.py`
+Run the hit-rate simulation:
+```bash
+python3 simulate_hitrate.py
+```
+
+Run the project verifier:
+```bash
+python3 verify_project1.py
+```
+
+## Usage Example
+```python
+from lru_cache import LRUCache, _MISSING
+
+cache = LRUCache(2)
+cache.put("A", 10)
+cache.put("B", 20)
+
+print(cache.get("A"))  # 10; A becomes most recently used
+
+cache.put("C", 30)     # Evicts B
+print(cache.get("B") is _MISSING)  # True
+```
+
+## Behavior and Complexity
+Reading or updating an existing entry moves it to the front. A missing key returns the _MISSING sentinel, allowing None to remain a valid stored value.
+
+Dictionary access gives expected O(1) lookup. Moving a node and removing the least recently used node require a fixed number of pointer changes. Therefore, get and eviction take expected O(1) time, and put takes expected amortized O(1) time. Storage is O(capacity).
